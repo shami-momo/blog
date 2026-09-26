@@ -1,0 +1,161 @@
+---
+import '../styles/global.css';
+import { SITE } from '../consts';
+import { getPosts, postUrl } from '../lib/posts';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+}
+
+const {
+  title,
+  description = SITE.description,
+  image = SITE.socialImage,
+  type = 'website',
+} = Astro.props;
+const pageTitle = title ? `${title} · ${SITE.title}` : SITE.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const currentPath = Astro.url.pathname;
+const posts = await getPosts();
+const searchData = JSON.stringify(posts.map((post) => ({
+  title: post.data.title,
+  tags: post.data.tags,
+  url: postUrl(post),
+}))).replaceAll('<', '\\u003c');
+const isActive = (path: string) => path === '/' ? currentPath === '/' : currentPath.startsWith(path);
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f7f9ff" id="theme-color" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.title} RSS`} href="/rss.xml" />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(image, Astro.site)} />
+    <meta name="twitter:card" content={image === SITE.socialImage ? 'summary' : 'summary_large_image'} />
+    <title>{pageTitle}</title>
+    <script is:inline>
+      (() => {
+        const saved = localStorage.getItem('theme');
+        const theme = saved === 'light' || saved === 'dark'
+          ? saved
+          : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">본문으로 건너뛰기</a>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="wordmark" href="/" aria-label="홈">hojun<span>.</span>yoo</a>
+        <nav class="site-nav" aria-label="주요 메뉴">
+          <a href="/about/" aria-current={isActive('/about/') ? 'page' : undefined}>소개</a>
+          <a href="/posts/" aria-current={isActive('/posts/') ? 'page' : undefined}>글</a>
+          <a href="/travel/" aria-current={isActive('/travel/') ? 'page' : undefined}>여행</a>
+          <a href="/photos/" aria-current={isActive('/photos/') ? 'page' : undefined}>사진</a>
+        </nav>
+        <div class="header-actions">
+          <button class="icon-button" id="search-open" type="button" aria-label="글 검색" aria-keyshortcuts="Control+K Meta+K">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+          </button>
+          <button class="icon-button" id="theme-toggle" type="button" aria-label="테마 전환">
+            <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8 8 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"></path></svg>
+            <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M19 5l-1.5 1.5m-11 11L5 19"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <main id="main-content">
+        <slot />
+      </main>
+
+      <footer class="site-footer">
+        <span>© {new Date().getFullYear()} {SITE.title}</span>
+        <a class="secret-link" href="/aburibinninaruyo/" aria-label="숨겨진 애니메이션 기록">🌸✋</a>
+        <a href="https://github.com/shami-momo/blog">Source</a>
+      </footer>
+    </div>
+
+    <dialog class="search-dialog" id="search-dialog" aria-labelledby="search-title">
+      <form method="dialog" class="search-head">
+        <label id="search-title" for="search-input">글 검색</label>
+        <button class="icon-button" value="cancel" aria-label="검색 닫기">×</button>
+      </form>
+      <input id="search-input" type="search" placeholder="제목이나 태그를 입력하세요" autocomplete="off" />
+      <ul id="search-results"></ul>
+      <p id="search-message">검색어를 입력하세요.</p>
+    </dialog>
+    <script type="application/json" id="search-data" set:html={searchData}></script>
+
+    <script>
+      const root = document.documentElement;
+      const themeButton = document.querySelector<HTMLButtonElement>('#theme-toggle');
+      const themeColor = document.querySelector<HTMLMetaElement>('#theme-color');
+
+      function applyTheme(theme: 'light' | 'dark') {
+        root.dataset.theme = theme;
+        localStorage.setItem('theme', theme);
+        themeColor?.setAttribute('content', theme === 'dark' ? '#10131a' : '#f7f9ff');
+        themeButton?.setAttribute('aria-label', `${theme === 'dark' ? '라이트' : '다크'} 테마로 전환`);
+        window.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
+      }
+
+      applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
+      themeButton?.addEventListener('click', () => applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
+
+      const dialog = document.querySelector<HTMLDialogElement>('#search-dialog');
+      const input = document.querySelector<HTMLInputElement>('#search-input');
+      const results = document.querySelector<HTMLUListElement>('#search-results');
+      const message = document.querySelector<HTMLParagraphElement>('#search-message');
+      const rawData = document.querySelector('#search-data')?.textContent ?? '[]';
+      const searchItems = JSON.parse(rawData) as { title: string; tags: string[]; url: string }[];
+
+      function openSearch() {
+        dialog?.showModal();
+        input?.focus();
+      }
+
+      document.querySelector('#search-open')?.addEventListener('click', openSearch);
+      document.addEventListener('keydown', (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+          event.preventDefault();
+          openSearch();
+        }
+      });
+
+      input?.addEventListener('input', () => {
+        const query = input.value.trim().toLocaleLowerCase('ko');
+        const matched = query
+          ? searchItems.filter((item) => `${item.title} ${item.tags.join(' ')}`.toLocaleLowerCase('ko').includes(query)).slice(0, 8)
+          : [];
+
+        results?.replaceChildren(...matched.map((item) => {
+          const link = document.createElement('a');
+          const li = document.createElement('li');
+          link.href = item.url;
+          link.textContent = item.title;
+          li.append(link);
+          return li;
+        }));
+        if (message) message.textContent = !query ? '검색어를 입력하세요.' : matched.length ? '' : '검색 결과가 없습니다.';
+      });
+
+      dialog?.addEventListener('click', (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+    </script>
+  </body>
+</html>

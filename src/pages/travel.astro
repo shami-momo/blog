@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import travelData from '../data/travel.json';
+
+interface Trip {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+  url?: string;
+  emoji?: string;
+  description?: string;
+  countries?: string[];
+  prefectures?: string[];
+  prefectures_walked?: string[];
+  prefectures_lived?: string[];
+}
+
+const trips = (travelData as Trip[]).toSorted((a, b) => b.start.localeCompare(a.start));
+const countries = new Set(trips.flatMap((trip) => trip.countries ?? []));
+const prefectures = new Set(trips.flatMap((trip) => [
+  ...(trip.prefectures ?? []),
+  ...(trip.prefectures_walked ?? []),
+  ...(trip.prefectures_lived ?? []),
+]));
+const days = new Set<string>();
+for (const trip of trips) {
+  const cursor = new Date(`${trip.start}T00:00:00Z`);
+  const end = new Date(`${trip.end}T00:00:00Z`);
+  while (cursor <= end) {
+    days.add(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+}
+const grouped = Map.groupBy(trips, (trip) => trip.start.slice(0, 4));
+const formatShort = (date: string) => date.slice(5).replace('-', '.');
+---
+
+<BaseLayout title="여행" description="지금까지 다녀온 여행을 연도별로 기록합니다.">
+  <section class="page page-wide">
+    <header class="page-header">
+      <p class="eyebrow">Travel log</p>
+      <h1>여행</h1>
+      <p>지도와 차트 대신, 어디를 언제 다녀왔는지 빠르게 읽히는 정적 타임라인으로 정리했습니다.</p>
+    </header>
+
+    <div class="stat-grid" aria-label="여행 통계">
+      <div class="stat"><strong>{days.size}</strong><span>여행한 날</span></div>
+      <div class="stat"><strong>{countries.size}</strong><span>방문 국가</span></div>
+      <div class="stat"><strong>{prefectures.size}</strong><span>방문한 일본 도도부현</span></div>
+    </div>
+
+    <div>
+      {[...grouped].map(([year, yearTrips]) => (
+        <section class="travel-year" aria-labelledby={`year-${year}`}>
+          <h2 id={`year-${year}`}>{year}</h2>
+          <div class="travel-cards">
+            {yearTrips.map((trip) => {
+              const Tag = trip.url ? 'a' : 'article';
+              return (
+                <Tag class="travel-card" href={trip.url}>
+                  <span class="travel-period">{formatShort(trip.start)}<br />— {formatShort(trip.end)}</span>
+                  <span>
+                    <span class="travel-title">{trip.title}</span>
+                    {trip.description && <span class="travel-description">{trip.description}</span>}
+                  </span>
+                  <span aria-hidden="true">{trip.emoji ?? '✈️'}</span>
+                </Tag>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

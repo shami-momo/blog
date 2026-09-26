@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatDate, getPosts, postUrl } from '../../lib/posts';
+
+const posts = await getPosts();
+---
+
+<BaseLayout title="글" description="궤도역학, 항공우주공학과 지구과학에 관해 쓴 글입니다.">
+  <section class="page">
+    <header class="page-header">
+      <p class="eyebrow">Writing</p>
+      <h1>글</h1>
+      <p>{posts.length ? `지금까지 ${posts.length}편의 글을 썼습니다.` : 'Markdown 글을 기다리고 있습니다.'}</p>
+    </header>
+
+    {posts.length ? (
+      <ol class="post-list">
+        {posts.map((post) => (
+          <li>
+            <a class="post-entry" href={postUrl(post)}>
+              <span>
+                <span class="post-title">{post.data.title}</span>
+                {post.data.tags.length > 0 && <span class="post-tags">{post.data.tags.join(' · ')}</span>}
+              </span>
+              <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+            </a>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <p class="empty-state"><code>src/content/posts/</code>에 기존 <code>_posts/*.md</code> 파일을 복사하면 빌드할 때 목록과 상세 페이지가 자동 생성됩니다.</p>
+    )}
+
+    <div class="prose">
+      <h2>발표·교육 자료</h2>
+      <ul>
+        <li>지구과학II 별빛너머 모의고사 <a href="https://drive.google.com/file/d/1miJYRRXLxX9d23r0SudA1yvqeBO3qeKQ/view?usp=sharing">PDF</a></li>
+        <li>하나고등학교 전공탐색의 날 발표자료 <a href="https://drive.google.com/file/d/1YxI8Qz3pJPKpNJxKAVjpwzv356rnGgwl/view?usp=sharing">PDF</a></li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
