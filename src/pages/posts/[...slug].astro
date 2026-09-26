@@ -1,0 +1,90 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatDate, getPosts, postSlug, postUrl } from '../../lib/posts';
+
+type Post = CollectionEntry<'posts'>;
+interface Props { post: Post; older?: Post; newer?: Post }
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, index) => ({
+    params: { slug: postSlug(post) },
+    props: { post, older: posts[index + 1], newer: posts[index - 1] },
+  }));
+}
+
+const { post, older, newer } = Astro.props;
+const { Content, headings } = await render(post);
+const description = post.data.description ?? `${post.data.title} — ${post.data.tags.join(', ')}`;
+---
+
+<BaseLayout title={post.data.title} description={description} image={post.data.image} type="article">
+  <article class="page">
+    <header class="post-header">
+      <a class="back-link" href="/posts/">← 글 목록</a>
+      {post.data.tags.length > 0 && <div class="tag-row">{post.data.tags.map((tag) => <span class="tag">{tag}</span>)}</div>}
+      <h1>{post.data.title}</h1>
+      <p class="post-meta"><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time></p>
+    </header>
+
+    {headings.length > 1 && (
+      <details class="empty-state">
+        <summary>목차</summary>
+        <ol>
+          {headings.filter(({ depth }) => depth === 2 || depth === 3).map((heading) => (
+            <li style={`margin-left:${heading.depth === 3 ? '1rem' : '0'}`}><a href={`#${heading.slug}`}>{heading.text}</a></li>
+          ))}
+        </ol>
+      </details>
+    )}
+
+    <div class="prose post-content">
+      <Content />
+    </div>
+
+    <nav class="post-nav" aria-label="다른 글">
+      {older ? <a href={postUrl(older)}><small>이전 글</small>{older.data.title}</a> : <span></span>}
+      {newer ? <a href={postUrl(newer)}><small>다음 글</small>{newer.data.title}</a> : <span></span>}
+    </nav>
+  </article>
+
+  <script is:inline>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        macros: {
+          odv: ['{\\frac{\\mathrm{d}#1}{\\mathrm{d}#2}}', 2], odif: ['{\\mathrm{d}#1}', 1],
+          pdv: ['{\\frac{\\partial#1}{\\partial#2}}', 2], mdv: ['{\\frac{\\mathrm{D}#1}{\\mathrm{D}#2}}', 2],
+          grad: '{\\nabla}', divg: '{\\nabla \\cdot}', curl: '{\\nabla \\times}', laplacian: '{\\nabla^2}',
+          oddv: ['{\\frac{\\mathrm{d}^2#1}{\\mathrm{d}#2^2}}', 2], pddv: ['{\\frac{\\partial^2#1}{\\partial#2^2}}', 2],
+          ehat: ['{\\hat{\\mathbf{e}}_{#1}}', 1], uhat: ['{\\hat{\\mathbf{u}}_{#1}}', 1]
+        }
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script is:inline async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+  <script>
+    const liquidPath = /\{\{\s*['"]([^'"]+)['"]\s*\|\s*relative_url\s*\}\}/;
+    document.querySelectorAll<HTMLImageElement>('.post-content img').forEach((image) => {
+      const legacyPath = image.getAttribute('src')?.match(liquidPath)?.[1];
+      if (legacyPath) image.src = legacyPath;
+    });
+    document.querySelectorAll<HTMLAnchorElement>('.post-content a').forEach((link) => {
+      const legacyPath = link.getAttribute('href')?.match(liquidPath)?.[1];
+      if (legacyPath) link.href = legacyPath;
+    });
+    document.querySelectorAll<HTMLImageElement>('.post-content img').forEach((image) => {
+      image.loading ||= 'lazy';
+      image.decoding ||= 'async';
+    });
+    document.querySelectorAll<HTMLTableElement>('.post-content table').forEach((table) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'table-scroll';
+      table.before(wrapper);
+      wrapper.append(table);
+    });
+  </script>
+</BaseLayout>
