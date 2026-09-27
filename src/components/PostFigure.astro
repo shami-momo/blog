@@ -1,0 +1,18 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: ImageMetadata | Promise<{ default: ImageMetadata }>;
+  alt: string;
+  caption?: string;
+  wide?: boolean;
+}
+
+const { src, alt, caption, wide = false } = Astro.props;
+---
+
+<figure class:list={{ 'figure-85': wide }}>
+  <Image src={src} alt={alt} layout="constrained" />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

@@ -1,55 +1,42 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { Image } from 'astro:assets';
+import profileImage from '../assets/images/profile.webp';
 import { SITE } from '../consts';
 import { formatDate, getPosts, postUrl } from '../lib/posts';
+import '../styles/home.css';
 
 const posts = (await getPosts()).slice(0, 3);
 ---
 
 <BaseLayout>
-  <section class="hero">
-    <div>
-      <p class="hero-kicker">Aerospace engineering · Seoul</p>
-      <h1>hojun<span>.</span><br />yoo</h1>
-      <p class="hero-summary">
-        반갑습니다, <strong>유호준</strong>입니다. 궤도역학과 우주추진을 공부하고,
-        이곳저곳 여행하며 사진 찍는 것을 좋아합니다.
+  <section class="intro">
+    <div class="intro-text">
+      <h1>hojun<span class="intro-dot">.</span>yoo</h1>
+      <p>반갑습니다, <b>유호준</b>입니다. 항공우주공학을 공부하고 있습니다.</p>
+      <p>궤도역학과 우주추진에 관심이 있습니다. 이곳저곳 여행 다니며 사진 찍는 것을 좋아합니다. 라이브를 보러 가기도.</p>
+      <p class="contact">
+        <span class="contact-label">Contact</span>
+        <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
       </p>
-      <div class="hero-links">
-        <a class="button-link primary" href="/about/">더 알아보기 →</a>
-        <a class="button-link" href={`mailto:${SITE.email}`}>{SITE.email}</a>
-      </div>
     </div>
-    <div class="orbit-mark" aria-label="궤도를 형상화한 그래픽">
-      <span class="orbit-object"></span>
-    </div>
+
+    <Image class="profile-photo" src={profileImage} alt="유호준 프로필 사진" width={180} height={180} layout="fixed" priority />
   </section>
 
-  <section class="home-section" aria-labelledby="recent-posts">
-    <div class="section-head">
-      <h2 id="recent-posts">최근 글</h2>
-      <a href="/posts/">모든 글 →</a>
+  <section class="section">
+    <div class="section-header">
+      <h2>최근 글</h2>
+      <a class="section-more" href="/posts/">더보기 →</a>
     </div>
-    {posts.length ? (
-      <ol class="post-list">
-        {posts.map((post) => (
-          <li>
-            <a class="post-entry" href={postUrl(post)}>
-              <span>
-                <span class="post-title">{post.data.title}</span>
-                {post.data.tags.length > 0 && (
-                  <span class="post-tags">{post.data.tags.join(' · ')}</span>
-                )}
-              </span>
-              <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
-            </a>
-          </li>
-        ))}
-      </ol>
-    ) : (
-      <p class="empty-state">
-        글을 옮길 준비가 끝났습니다. <code>src/content/posts</code>에 기존 Markdown 파일을 넣으면 여기에 자동으로 표시됩니다.
-      </p>
-    )}
+
+    <ol class="post-list">
+      {posts.map((post) => (
+        <li>
+          <a href={postUrl(post)}>{post.data.title}</a>
+          <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+        </li>
+      ))}
+    </ol>
   </section>
 </BaseLayout>

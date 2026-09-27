@@ -1,0 +1,375 @@
+.map-wrap {
+  overflow-x: auto;
+}
+
+.world-map,
+.japan-map {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.world-map path,
+.world-map polygon,
+.japan-map .prefecture {
+  fill: var(--line-soft);
+  stroke: var(--bg);
+  stroke-width: 0.5px;
+  vector-effect: non-scaling-stroke;
+  transition:
+    fill var(--motion-fast) var(--ease),
+    opacity var(--motion-fast) var(--ease),
+    stroke var(--motion-fast) var(--ease);
+}
+
+.world-map .visited,
+.japan-map .prefecture.is-stayed {
+  fill: var(--main-bright);
+}
+
+.japan-map .prefecture.is-walked {
+  fill: color-mix(in srgb, var(--main-bright) 64%, var(--bg));
+}
+
+.japan-map .prefecture.is-landed {
+  fill: color-mix(in srgb, var(--main-bright) 36%, var(--bg));
+  stroke: var(--main-bright);
+  stroke-dasharray: 2 1;
+}
+
+.japan-map .prefecture.is-passed {
+  fill: var(--bg);
+  stroke: var(--main-bright);
+  stroke-width: 1px;
+  stroke-dasharray: 2 1;
+}
+
+.japan-map .separator {
+  fill: none;
+  stroke: var(--muted-soft);
+  stroke-width: 1px;
+}
+
+.world-map .is-clickable,
+.japan-map .is-clickable {
+  cursor: pointer;
+}
+
+.world-map .is-clickable:is(:hover, .is-map-active),
+.japan-map .is-clickable:is(:hover, .is-map-active) {
+  opacity: 0.76;
+}
+
+.world-map .is-clickable:focus-visible,
+.japan-map .is-clickable:focus-visible {
+  outline: none;
+  stroke: var(--text);
+  stroke-width: 2px;
+}
+
+.keikenchi-summary {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0 auto var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.keikenchi-value {
+  color: var(--main);
+}
+
+.legend.map-legend {
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.map-legend-swatch {
+  border: 1px solid var(--bg);
+  background: var(--main-bright);
+}
+
+.map-legend-swatch.is-walked {
+  background: color-mix(in srgb, var(--main-bright) 64%, var(--bg));
+}
+
+.map-legend-swatch.is-landed {
+  border-color: var(--main-bright);
+  background: color-mix(in srgb, var(--main-bright) 36%, var(--bg));
+}
+
+.map-legend-swatch.is-passed {
+  border-color: var(--main-bright);
+  border-style: dashed;
+  background: var(--bg);
+}
+
+.map-attribution {
+  display: block;
+  color: var(--muted);
+  font-size: 0.6875rem;
+  text-align: center;
+}
+
+.travel-list-root {
+  margin-top: var(--space-4);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.travel-year-section {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: var(--space-5);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.content h3.travel-year {
+  margin: 0;
+  padding-top: 0.8rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.travel-year-list {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.travel-card {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0 -0.5rem;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  color: inherit;
+  text-decoration: none;
+}
+
+.content a.travel-card,
+.content a.travel-card:hover {
+  background-image: none;
+  text-decoration: none;
+}
+
+a.travel-card {
+  transition:
+    background-color var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease);
+}
+
+a.travel-card:hover {
+  background-color: var(--paper);
+  transform: translateX(var(--space-1));
+}
+
+.travel-card-period {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.travel-card-period-value {
+  display: grid;
+  place-items: center;
+  height: 1.65rem;
+  padding-inline: 0.45rem;
+}
+
+.travel-card-period-value:last-child {
+  border-top: 1px solid var(--line-soft);
+}
+
+.travel-card-period-value.is-note {
+  color: var(--main);
+}
+
+.travel-card-period-arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  padding: 0 0.15rem;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 0.65rem;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
+.travel-card-content {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.travel-card-title,
+.travel-card-description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.travel-card-title {
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.travel-card-icon {
+  margin-left: 0.2rem;
+}
+
+.travel-card-description {
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.travel-card-arrow {
+  display: block;
+  align-self: center;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  transition:
+    color var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease);
+}
+
+a.travel-card:hover .travel-card-arrow {
+  color: var(--text);
+  transform: translateX(var(--space-1));
+}
+
+.travel-popup {
+  width: min(40rem, calc(100% - 3rem));
+  max-height: min(47.5rem, calc(100dvh - 3rem));
+}
+
+.travel-popup[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.travel-popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+.content .travel-popup-header h2 {
+  margin: 0;
+  padding: 0;
+  color: var(--text);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.content .travel-popup-header h2::before {
+  display: none;
+}
+
+.travel-popup-close {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: -0.4rem -0.4rem 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.travel-popup-close:hover {
+  background: var(--paper);
+  color: var(--text);
+}
+
+.travel-popup-close svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.travel-popup-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 var(--space-5) var(--space-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.travel-popup-list .travel-year-section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.travel-popup-list .travel-year-section:last-child {
+  padding-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .travel-popup {
+    width: calc(100% - 2rem);
+    max-height: calc(100dvh - 2rem);
+  }
+
+  .travel-popup-header {
+    padding: var(--space-4) var(--space-4) var(--space-3);
+  }
+
+  .travel-popup-list {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  .travel-year-section {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+    padding: 1.1rem 0;
+  }
+
+  .content h3.travel-year {
+    padding-top: 0;
+  }
+
+  .travel-card {
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+  }
+
+  .travel-card-period {
+    font-size: 0.75rem;
+  }
+
+  .travel-card-title {
+    font-size: 0.9375rem;
+  }
+
+  .travel-card-description {
+    font-size: 0.8125rem;
+  }
+}

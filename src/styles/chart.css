@@ -1,0 +1,22 @@
+.stacked-chart {
+  margin: var(--space-6) 0 var(--space-7);
+}
+
+.legend.stacked-chart-legend {
+  margin-bottom: var(--space-3);
+  font-weight: 700;
+}
+
+.stacked-chart-swatch {
+  background: var(--swatch);
+}
+
+.stacked-chart-canvas {
+  position: relative;
+  width: 100%;
+  height: var(--chart-height);
+}
+
+.stacked-chart canvas {
+  display: block;
+}

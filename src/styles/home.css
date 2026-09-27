@@ -1,0 +1,110 @@
+.intro a {
+  color: var(--main);
+}
+
+.intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: var(--space-7);
+  align-items: center;
+}
+
+.intro-text {
+  min-width: 0;
+}
+
+.intro h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 6vw, 3.25rem);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.055em;
+}
+
+.intro-dot {
+  color: var(--main);
+}
+
+.intro p {
+  color: var(--text-soft);
+}
+
+.profile-photo {
+  width: 180px;
+  aspect-ratio: 1;
+  justify-self: end;
+  object-fit: cover;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.65rem;
+  margin-bottom: 0;
+}
+
+.contact-label {
+  font-weight: 600;
+}
+
+.contact a {
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.section {
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+}
+
+.section h2 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.section-more {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 720px) {
+  .intro {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--space-5);
+  }
+
+  .profile-photo {
+    width: 132px;
+    height: 132px;
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .intro h1 {
+    font-size: clamp(2.3rem, 12vw, 3.1rem);
+  }
+}
