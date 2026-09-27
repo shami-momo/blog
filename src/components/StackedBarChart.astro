@@ -1,0 +1,164 @@
+---
+import '../styles/chart.css';
+
+interface Dataset {
+  label: string;
+  data: number[];
+  color: string;
+}
+
+interface Props {
+  id: string;
+  caption: string;
+  labels: string[];
+  datasets: Dataset[];
+  unit: string;
+  links?: string[];
+  height?: string;
+}
+
+const {
+  id,
+  caption,
+  labels,
+  datasets,
+  unit,
+  links,
+  height = '19rem',
+} = Astro.props;
+
+if (datasets.some((dataset) => dataset.data.length !== labels.length)) {
+  throw new Error(`${id}: labels and dataset lengths must match`);
+}
+
+const summaryId = `${id}-summary`;
+const payload = JSON.stringify({ labels, datasets, unit, links }).replaceAll('<', '\\u003c');
+---
+
+<figure class="stacked-chart" data-stacked-chart style={`--chart-height: ${height}`}>
+  <figcaption id={`${id}-caption`} class="visually-hidden">{caption}</figcaption>
+  <ul class="stacked-chart-legend legend" aria-label="차트 범례">
+    {datasets.map((dataset) => (
+      <li><span class="stacked-chart-swatch legend-swatch" style={`--swatch: var(${dataset.color})`}></span>{dataset.label}</li>
+    ))}
+  </ul>
+  <div class="stacked-chart-canvas">
+    <canvas id={id} role="img" aria-labelledby={`${id}-caption`} aria-describedby={summaryId}></canvas>
+  </div>
+  <table id={summaryId} class="visually-hidden">
+    <caption>{caption}</caption>
+    <thead>
+      <tr><th>연도</th>{datasets.map((dataset) => <th>{dataset.label}</th>)}</tr>
+    </thead>
+    <tbody>
+      {labels.map((label, index) => (
+        <tr>
+          <th>{links?.[index] ? <a href={links[index]}>{label}</a> : label}</th>
+          {datasets.map((dataset) => <td>{dataset.data[index]}{unit}</td>)}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  <script type="application/json" data-chart-config set:html={payload}></script>
+</figure>
+
+<script>
+  import {
+    BarController,
+    BarElement,
+    CategoryScale,
+    Chart,
+    LinearScale,
+    Tooltip,
+  } from 'chart.js';
+
+  Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+
+  interface ChartPayload {
+    labels: string[];
+    datasets: { label: string; data: number[]; color: string }[];
+    unit: string;
+    links?: string[];
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-stacked-chart]').forEach((root) => {
+    if (root.dataset.ready) return;
+    root.dataset.ready = 'true';
+
+    const canvas = root.querySelector<HTMLCanvasElement>('canvas');
+    const config = root.querySelector<HTMLScriptElement>('[data-chart-config]');
+    if (!canvas || !config) return;
+
+    const payload = JSON.parse(config.textContent ?? '{}') as ChartPayload;
+    const colorProbe = document.createElement('span');
+    colorProbe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none';
+    root.append(colorProbe);
+    const color = (name: string) => {
+      colorProbe.style.color = `var(${name})`;
+      return getComputedStyle(colorProbe).color;
+    };
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const chart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: payload.labels,
+        datasets: payload.datasets.map((dataset) => ({
+          label: dataset.label,
+          data: dataset.data,
+          backgroundColor: color(dataset.color),
+          borderSkipped: false,
+          barPercentage: 0.82,
+          categoryPercentage: 0.9,
+        })),
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: reducedMotion ? 0 : 240 },
+        interaction: { mode: 'index', intersect: false },
+        onClick: (_, elements) => {
+          const link = payload.links?.[elements[0]?.index];
+          if (link) location.hash = link;
+        },
+        onHover: (_, elements, currentChart) => {
+          currentChart.canvas.style.cursor = payload.links && elements.length ? 'pointer' : 'default';
+        },
+        scales: {
+          x: {
+            stacked: true,
+            border: { display: false },
+            grid: { display: false },
+            ticks: { color: color('--muted'), maxRotation: 40, minRotation: 0 },
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            border: { display: false },
+            grid: { color: color('--line-soft') },
+            ticks: { color: color('--muted'), precision: 0 },
+          },
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.dataset.label}: ${context.parsed.y ?? 0}${payload.unit}`,
+              footer: (items) => `합계: ${items.reduce((sum, item) => sum + (item.parsed.y ?? 0), 0)}${payload.unit}`,
+            },
+          },
+        },
+      },
+    });
+    document.fonts.ready.then(() => chart.update('none'));
+
+    addEventListener('themechange', () => {
+      chart.data.datasets.forEach((dataset, index) => {
+        dataset.backgroundColor = color(payload.datasets[index].color);
+      });
+      if (chart.options.scales?.x?.ticks) chart.options.scales.x.ticks.color = color('--muted');
+      if (chart.options.scales?.y?.ticks) chart.options.scales.y.ticks.color = color('--muted');
+      if (chart.options.scales?.y?.grid) chart.options.scales.y.grid.color = color('--line-soft');
+      chart.update('none');
+    });
+  });
+</script>

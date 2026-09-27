@@ -1,21 +1,22 @@
 import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { createRequire } from 'node:module';
 import { z } from 'astro/zod';
+
+const { glob } = createRequire(import.meta.url)('astro/loaders');
 
 const posts = defineCollection({
   loader: glob({
     base: './src/content/posts',
-    pattern: '**/*.{md,mdx}',
-    generateId: ({ entry }) => entry.replace(/\.(md|mdx)$/i, ''),
+    pattern: '**/*.mdx',
+    generateId: ({ entry }) => entry.replace(/\.mdx$/i, ''),
   }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     title: z.string(),
     date: z.coerce.date(),
     description: z.string().optional(),
     tags: z.array(z.string()).default([]),
-    image: z.string().optional(),
+    image: image().optional(),
     draft: z.boolean().default(false),
-    layout: z.string().optional(),
   }),
 });
 

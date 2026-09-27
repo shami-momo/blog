@@ -1,47 +1,134 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import StackedBarChart from '../components/StackedBarChart.astro';
 import animeData from '../data/anime.json';
+import '../styles/content.css';
+import '../styles/anime.css';
 
 interface Anime { year: number | string; season: number; title: string; rating: number; yuri: boolean }
 const anime = animeData as Anime[];
+const grouped = Map.groupBy(anime, (item) => String(item.year));
+const seasonLabel = (season: number) => season === 0 ? '극장판' : `${season}분기`;
+const yearId = (year: string) => `anime-year-${year.replaceAll(' ', '-')}`;
+const yearLabels = [...new Set(anime.map((item) => String(item.year)))];
+const numericYears = yearLabels.map(Number).filter(Number.isFinite);
+const chartLabels = [
+  ...(yearLabels.includes('2008 이전') ? ['2008 이전'] : []),
+  ...Array.from(
+    { length: Math.max(...numericYears) - Math.min(...numericYears) + 1 },
+    (_, index) => String(Math.min(...numericYears) + index),
+  ),
+];
+const chartData = chartLabels.map((year) => {
+  const items = grouped.get(year) ?? [];
+  const yuri = items.filter((item) => item.yuri).length;
+  return { year, yuri, normal: items.length - yuri };
+});
+const chartDatasets = [
+  { label: '백합', data: chartData.map(({ yuri }) => yuri), color: '--main-bright' },
+  { label: '노말', data: chartData.map(({ normal }) => normal), color: '--main-softer' },
+];
 ---
 
 <BaseLayout title="애니메이션" description="지금까지 본 애니메이션과 개인적인 평점 기록입니다.">
-  <section class="page">
+  <article>
     <header class="page-header">
-      <p class="eyebrow">Archive</p>
       <h1>애니메이션</h1>
-      <p>지금까지 본 {anime.length}편의 개인적인 기록입니다.</p>
     </header>
 
-    <div class="anime-tools" aria-label="목록 필터">
-      <button class="filter-button" type="button" data-filter="all" aria-pressed="true">전체</button>
-      <button class="filter-button" type="button" data-filter="favorite" aria-pressed="false">★ 4–5</button>
-      <button class="filter-button" type="button" data-filter="yuri" aria-pressed="false">백합</button>
-    </div>
+    <div class="content">
+      <h2>애니 <span class="text-highlight">{anime.length}편</span>이나 본 오타쿠</h2>
 
-    <ol class="anime-list">
-      {anime.map((item) => (
-        <li class="anime-item" data-rating={item.rating} data-yuri={String(item.yuri)}>
-          <span class="anime-year">{item.year}</span>
-          <span>{item.title}</span>
-          <span class="anime-rating" aria-label={`${item.rating}점`}>{'★'.repeat(item.rating)}</span>
-        </li>
-      ))}
-    </ol>
-  </section>
+      <StackedBarChart
+        id="animeYearChart"
+        caption="연도별 시청 작품 수"
+        labels={chartData.map(({ year }) => year)}
+        datasets={chartDatasets}
+        unit="편"
+        links={chartData.map(({ year }) => `#${yearId(year)}`)}
+        height="20rem"
+      />
+
+      <h2>이런 작품들을 봤어요.</h2>
+
+      <div class="anime-controls">
+        <div class="anime-search-row">
+          <label class="visually-hidden" for="animeSearch">작품 제목 검색</label>
+          <input id="animeSearch" class="anime-search" type="search" placeholder="작품 제목 검색" autocomplete="off" />
+          <button id="animeReset" class="anime-reset" type="button" hidden>초기화</button>
+        </div>
+        <div class="anime-filters" role="group" aria-label="작품 필터">
+          <button type="button" class="anime-filter" data-filter="all" aria-pressed="true">전체</button>
+          <button type="button" class="anime-filter" data-filter="series" aria-pressed="false">TVA</button>
+          <button type="button" class="anime-filter" data-filter="movie" aria-pressed="false">극장판</button>
+          <span class="anime-filter-divider" aria-hidden="true"></span>
+          <button type="button" class="anime-filter" data-filter="perfect" aria-pressed="false">인생작</button>
+          <button type="button" class="anime-filter" data-filter="yuri" aria-pressed="false">백합</button>
+        </div>
+        <p id="animeFilterStatus" class="anime-filter-status" aria-live="polite">전체 {anime.length}편 중 {anime.length}편</p>
+      </div>
+
+      <div class="anime-groups">
+        {[...grouped].map(([year, items]) => (
+          <section id={yearId(year)} class="anime-year-section" aria-labelledby={`${yearId(year)}-title`}>
+            <h3 id={`${yearId(year)}-title`} class="anime-year">{year}</h3>
+            <ul class="anime-list">
+              {items.map((item) => (
+                <li class:list={['anime-card', { 'is-perfect': item.rating === 5 }]} data-season={item.season} data-rating={item.rating} data-yuri={String(item.yuri)} data-title={item.title.toLocaleLowerCase('ko')}>
+                  <span class="anime-season">{seasonLabel(item.season)}</span>
+                  <span class:list={['anime-rating', { 'is-perfect': item.rating === 5 }]} aria-label={`${item.rating}점`}>★{item.rating}</span>
+                  <span class="anime-title">{item.title}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+        <p class="anime-empty" hidden>해당하는 작품이 없어요. 필터나 검색어를 바꿔봐요.</p>
+      </div>
+    </div>
+  </article>
 
   <script>
-    const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
-    const items = document.querySelectorAll<HTMLElement>('.anime-item');
-    buttons.forEach((button) => button.addEventListener('click', () => {
-      const filter = button.dataset.filter;
-      buttons.forEach((candidate) => candidate.setAttribute('aria-pressed', String(candidate === button)));
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>('.anime-filter')];
+    const items = [...document.querySelectorAll<HTMLElement>('.anime-card')];
+    const sections = [...document.querySelectorAll<HTMLElement>('.anime-year-section')];
+    const search = document.querySelector<HTMLInputElement>('#animeSearch');
+    const reset = document.querySelector<HTMLButtonElement>('#animeReset');
+    const status = document.querySelector<HTMLElement>('#animeFilterStatus');
+    const empty = document.querySelector<HTMLElement>('.anime-empty');
+    let filter = 'all';
+
+    const update = () => {
+      const query = search?.value.trim().toLocaleLowerCase('ko') ?? '';
+      let visible = 0;
       items.forEach((item) => {
-        item.hidden = filter === 'favorite'
-          ? Number(item.dataset.rating) < 4
-          : filter === 'yuri' ? item.dataset.yuri !== 'true' : false;
+        const matchesFilter = filter === 'series' ? item.dataset.season !== '0'
+          : filter === 'movie' ? item.dataset.season === '0'
+          : filter === 'perfect' ? item.dataset.rating === '5'
+          : filter === 'yuri' ? item.dataset.yuri === 'true'
+          : true;
+        const matchesSearch = !query || item.dataset.title?.includes(query);
+        item.hidden = !(matchesFilter && matchesSearch);
+        if (!item.hidden) visible += 1;
       });
+      sections.forEach((section) => { section.hidden = !section.querySelector('.anime-card:not([hidden])'); });
+      if (status) status.textContent = `전체 ${items.length}편 중 ${visible}편`;
+      if (empty) empty.hidden = visible > 0;
+      if (reset) reset.hidden = filter === 'all' && !query;
+    };
+
+    buttons.forEach((button) => button.addEventListener('click', () => {
+      filter = button.dataset.filter ?? 'all';
+      buttons.forEach((candidate) => candidate.setAttribute('aria-pressed', String(candidate === button)));
+      update();
     }));
+    search?.addEventListener('input', update);
+    reset?.addEventListener('click', () => {
+      filter = 'all';
+      if (search) search.value = '';
+      buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.filter === 'all')));
+      update();
+      search?.focus();
+    });
   </script>
 </BaseLayout>

@@ -1,12 +1,13 @@
 ---
 import '../styles/global.css';
+import type { ImageMetadata } from 'astro';
 import { SITE } from '../consts';
 import { getPosts, postUrl } from '../lib/posts';
 
 interface Props {
   title?: string;
   description?: string;
-  image?: string;
+  image?: ImageMetadata;
   type?: 'website' | 'article';
 }
 
@@ -18,6 +19,7 @@ const {
 } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.title}` : SITE.title;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const socialImage = new URL(image.src, Astro.site);
 const currentPath = Astro.url.pathname;
 const posts = await getPosts();
 const searchData = JSON.stringify(posts.map((post) => ({
@@ -35,7 +37,7 @@ const isActive = (path: string) => path === '/' ? currentPath === '/' : currentP
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#f7f9ff" id="theme-color" />
+    <meta name="theme-color" content="#ffffff" id="theme-color" />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title={`${SITE.title} RSS`} href="/rss.xml" />
@@ -43,119 +45,134 @@ const isActive = (path: string) => path === '/' ? currentPath === '/' : currentP
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={new URL(image, Astro.site)} />
+    <meta property="og:image" content={socialImage} />
     <meta name="twitter:card" content={image === SITE.socialImage ? 'summary' : 'summary_large_image'} />
     <title>{pageTitle}</title>
     <script is:inline>
       (() => {
-        const saved = localStorage.getItem('theme');
-        const theme = saved === 'light' || saved === 'dark'
-          ? saved
-          : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.dataset.theme = theme;
+        const systemTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        try {
+          const saved = localStorage.getItem('theme');
+          document.documentElement.dataset.theme = saved === 'light' || saved === 'dark' ? saved : systemTheme;
+        } catch {
+          document.documentElement.dataset.theme = systemTheme;
+        }
       })();
     </script>
   </head>
   <body>
-    <a class="skip-link" href="#main-content">본문으로 건너뛰기</a>
-    <div class="site-shell">
-      <header class="site-header">
-        <a class="wordmark" href="/" aria-label="홈">hojun<span>.</span>yoo</a>
-        <nav class="site-nav" aria-label="주요 메뉴">
+    <div class="site">
+      <header class="topbar">
+        <nav class="menu" aria-label="주요 메뉴">
+          <a href="/" aria-current={isActive('/') ? 'page' : undefined}>홈</a>
           <a href="/about/" aria-current={isActive('/about/') ? 'page' : undefined}>소개</a>
           <a href="/posts/" aria-current={isActive('/posts/') ? 'page' : undefined}>글</a>
           <a href="/travel/" aria-current={isActive('/travel/') ? 'page' : undefined}>여행</a>
           <a href="/photos/" aria-current={isActive('/photos/') ? 'page' : undefined}>사진</a>
         </nav>
-        <div class="header-actions">
-          <button class="icon-button" id="search-open" type="button" aria-label="글 검색" aria-keyshortcuts="Control+K Meta+K">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+
+        <nav class="toggle" aria-label="토글 버튼">
+          <button class="search-toggle" type="button" aria-label="사이트 검색" aria-keyshortcuts="Control+K Meta+K">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
           </button>
-          <button class="icon-button" id="theme-toggle" type="button" aria-label="테마 전환">
-            <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8 8 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"></path></svg>
-            <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M19 5l-1.5 1.5m-11 11L5 19"></path></svg>
+          <button class="theme-toggle" type="button" aria-label="다크 테마로 전환" data-next-theme="dark">
+            <span class="theme-toggle-icon theme-toggle-icon-dark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 5h4"></path><path d="M20 3v4"></path><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path></svg>
+            </span>
+            <span class="theme-toggle-icon theme-toggle-icon-light" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+            </span>
           </button>
-        </div>
+        </nav>
       </header>
 
-      <main id="main-content">
+      <main>
         <slot />
       </main>
 
-      <footer class="site-footer">
+      <footer class="footer">
         <span>© {new Date().getFullYear()} {SITE.title}</span>
-        <a class="secret-link" href="/aburibinninaruyo/" aria-label="숨겨진 애니메이션 기록">🌸✋</a>
-        <a href="https://github.com/shami-momo/blog">Source</a>
+        <a class="tadashikunai" href="/aburibinninaruyo/" aria-label="숨겨진 페이지 열기">🌸✋</a>
+        <a class="site-copyright" href="https://github.com/shami-momo/blog">Source</a>
       </footer>
     </div>
 
-    <dialog class="search-dialog" id="search-dialog" aria-labelledby="search-title">
-      <form method="dialog" class="search-head">
-        <label id="search-title" for="search-input">글 검색</label>
-        <button class="icon-button" value="cancel" aria-label="검색 닫기">×</button>
-      </form>
-      <input id="search-input" type="search" placeholder="제목이나 태그를 입력하세요" autocomplete="off" />
-      <ul id="search-results"></ul>
-      <p id="search-message">검색어를 입력하세요.</p>
+    <dialog class="site-search modal-surface" id="siteSearch" aria-label="글 검색">
+      <header class="site-search-header">
+        <label class="visually-hidden" for="siteSearchInput">글 검색</label>
+        <input class="site-search-input" id="siteSearchInput" type="search" placeholder="글 제목이나 태그 검색" autocomplete="off" spellcheck="false" />
+      </header>
+      <ul class="site-search-results" id="siteSearchResults" hidden></ul>
+      <p class="site-search-message" id="siteSearchMessage">Esc로 닫기</p>
     </dialog>
-    <script type="application/json" id="search-data" set:html={searchData}></script>
+    <script type="application/json" id="searchData" set:html={searchData}></script>
 
     <script>
       const root = document.documentElement;
-      const themeButton = document.querySelector<HTMLButtonElement>('#theme-toggle');
+      const themeButton = document.querySelector<HTMLButtonElement>('.theme-toggle');
       const themeColor = document.querySelector<HTMLMetaElement>('#theme-color');
 
-      function applyTheme(theme: 'light' | 'dark') {
+      function applyTheme(theme: 'light' | 'dark', persist = false) {
         root.dataset.theme = theme;
-        localStorage.setItem('theme', theme);
-        themeColor?.setAttribute('content', theme === 'dark' ? '#10131a' : '#f7f9ff');
-        themeButton?.setAttribute('aria-label', `${theme === 'dark' ? '라이트' : '다크'} 테마로 전환`);
+        if (persist) try { localStorage.setItem('theme', theme); } catch {}
+        const nextTheme = theme === 'dark' ? 'light' : 'dark';
+        themeButton?.setAttribute('data-next-theme', nextTheme);
+        themeButton?.setAttribute('aria-label', `${nextTheme === 'dark' ? '다크' : '라이트'} 테마로 전환`);
+        themeColor?.setAttribute('content', theme === 'dark' ? '#121212' : '#ffffff');
         window.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
       }
 
       applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
-      themeButton?.addEventListener('click', () => applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
+      themeButton?.addEventListener('click', () => applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark', true));
 
-      const dialog = document.querySelector<HTMLDialogElement>('#search-dialog');
-      const input = document.querySelector<HTMLInputElement>('#search-input');
-      const results = document.querySelector<HTMLUListElement>('#search-results');
-      const message = document.querySelector<HTMLParagraphElement>('#search-message');
-      const rawData = document.querySelector('#search-data')?.textContent ?? '[]';
-      const searchItems = JSON.parse(rawData) as { title: string; tags: string[]; url: string }[];
+      const dialog = document.querySelector<HTMLDialogElement>('#siteSearch');
+      const input = document.querySelector<HTMLInputElement>('#siteSearchInput');
+      const results = document.querySelector<HTMLUListElement>('#siteSearchResults');
+      const message = document.querySelector<HTMLParagraphElement>('#siteSearchMessage');
+      const data = JSON.parse(document.querySelector('#searchData')?.textContent ?? '[]') as { title: string; tags: string[]; url: string }[];
 
       function openSearch() {
-        dialog?.showModal();
+        if (!dialog?.open) dialog?.showModal();
+        if (input) input.value = '';
+        input?.dispatchEvent(new Event('input'));
         input?.focus();
       }
 
-      document.querySelector('#search-open')?.addEventListener('click', openSearch);
+      document.querySelector('.search-toggle')?.addEventListener('click', openSearch);
       document.addEventListener('keydown', (event) => {
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
           event.preventDefault();
           openSearch();
         }
       });
-
       input?.addEventListener('input', () => {
         const query = input.value.trim().toLocaleLowerCase('ko');
-        const matched = query
-          ? searchItems.filter((item) => `${item.title} ${item.tags.join(' ')}`.toLocaleLowerCase('ko').includes(query)).slice(0, 8)
-          : [];
-
+        const matched = query ? data.filter((item) => `${item.title} ${item.tags.join(' ')}`.toLocaleLowerCase('ko').includes(query)).slice(0, 10) : [];
         results?.replaceChildren(...matched.map((item) => {
-          const link = document.createElement('a');
           const li = document.createElement('li');
+          const link = document.createElement('a');
+          link.className = 'site-search-result';
           link.href = item.url;
           link.textContent = item.title;
           li.append(link);
           return li;
         }));
-        if (message) message.textContent = !query ? '검색어를 입력하세요.' : matched.length ? '' : '검색 결과가 없습니다.';
+        if (results) results.hidden = matched.length === 0;
+        if (message) {
+          message.hidden = matched.length > 0;
+          message.textContent = query ? '검색 결과가 없습니다.' : 'Esc로 닫기';
+        }
       });
+      dialog?.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
 
-      dialog?.addEventListener('click', (event) => {
-        if (event.target === dialog) dialog.close();
-      });
+      const header = document.querySelector<HTMLElement>('.topbar');
+      let lastY = scrollY;
+      addEventListener('scroll', () => {
+        const currentY = scrollY;
+        if (Math.abs(currentY - lastY) < 12) return;
+        header?.classList.toggle('is-hidden', currentY > 64 && currentY > lastY);
+        lastY = currentY;
+      }, { passive: true });
     </script>
   </body>
 </html>

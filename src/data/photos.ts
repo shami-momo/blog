@@ -1,3 +1,5 @@
+import type { ImageMetadata } from 'astro';
+
 export const photos = [
   ['cos_3.webp', 'Tokyo, Japan · 2026', 'C107에서 촬영한 코스어'],
   ['shomyo.webp', 'Toyama, Japan · 2026', '풀이 덮인 바위 사이를 내려오는 쇼묘폭포'],
@@ -16,7 +18,12 @@ export const photos = [
   ['oigawa.webp', 'Shizuoka, Japan · 2024', '푸른 강 위를 지나는 철길'],
 ] as const;
 
-export const photoPaths = (file: string) => ({
-  thumbnail: `/assets/images/photos/thumbs/${file}`,
-  full: `/assets/images/photos/full/${file}`,
-});
+const thumbnails = import.meta.glob<{ default: ImageMetadata }>('../assets/images/photos/thumbs/*.webp', { eager: true });
+const fullImages = import.meta.glob<{ default: ImageMetadata }>('../assets/images/photos/full/*.webp', { eager: true });
+
+export function photoAssets(file: string) {
+  const thumbnail = thumbnails[`../assets/images/photos/thumbs/${file}`]?.default;
+  const full = fullImages[`../assets/images/photos/full/${file}`]?.default;
+  if (!thumbnail || !full) throw new Error(`사진 파일을 찾을 수 없습니다: ${file}`);
+  return { thumbnail, full };
+}

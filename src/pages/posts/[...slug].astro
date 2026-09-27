@@ -1,7 +1,10 @@
 ---
 import { render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { formatDate, getPosts, postSlug, postUrl } from '../../lib/posts';
+import { formatDate, getPosts, postUrl } from '../../lib/posts';
+import 'katex/dist/katex.min.css';
+import '../../styles/content.css';
+import '../../styles/post.css';
 
 type Post = CollectionEntry<'posts'>;
 interface Props { post: Post; older?: Post; newer?: Post }
@@ -9,82 +12,104 @@ interface Props { post: Post; older?: Post; newer?: Post }
 export async function getStaticPaths() {
   const posts = await getPosts();
   return posts.map((post, index) => ({
-    params: { slug: postSlug(post) },
+    params: { slug: post.id },
     props: { post, older: posts[index + 1], newer: posts[index - 1] },
   }));
 }
 
 const { post, older, newer } = Astro.props;
-const { Content, headings } = await render(post);
+const { Content, headings, remarkPluginFrontmatter } = await render(post);
 const description = post.data.description ?? `${post.data.title} — ${post.data.tags.join(', ')}`;
+const toc = headings.filter(({ depth }) => depth === 2 || depth === 3);
+const readingMinutes = remarkPluginFrontmatter.minutesRead;
 ---
 
 <BaseLayout title={post.data.title} description={description} image={post.data.image} type="article">
-  <article class="page">
+  <article class="post">
+    <div class="reading-progress" aria-hidden="true"><span class="reading-progress-bar"></span></div>
+
+    <p class="back"><a href="/posts/">← 글 목록</a></p>
+
     <header class="post-header">
-      <a class="back-link" href="/posts/">← 글 목록</a>
-      {post.data.tags.length > 0 && <div class="tag-row">{post.data.tags.map((tag) => <span class="tag">{tag}</span>)}</div>}
+      {post.data.tags.length > 0 && <p class="tag-list">{post.data.tags.map((tag) => <span class="tag">{tag}</span>)}</p>}
       <h1>{post.data.title}</h1>
-      <p class="post-meta"><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time></p>
+      <p class="meta"><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time> · 약 {readingMinutes}분</p>
     </header>
 
-    {headings.length > 1 && (
-      <details class="empty-state">
-        <summary>목차</summary>
+    {toc.length > 0 && (
+      <nav class="post-toc post-toc-desktop" aria-label="목차">
+        <p class="post-toc-title">목차</p>
         <ol>
-          {headings.filter(({ depth }) => depth === 2 || depth === 3).map((heading) => (
-            <li style={`margin-left:${heading.depth === 3 ? '1rem' : '0'}`}><a href={`#${heading.slug}`}>{heading.text}</a></li>
+          {toc.map((heading) => (
+            <li class={heading.depth === 3 ? 'toc-h3' : 'toc-h2'}><a href={`#${heading.slug}`}>{heading.text}</a></li>
           ))}
         </ol>
+      </nav>
+    )}
+
+    {toc.length > 0 && (
+      <details class="post-toc-mobile">
+        <summary>목차</summary>
+        <nav aria-label="모바일 목차">
+          <ol>
+            {toc.map((heading) => (
+              <li class={heading.depth === 3 ? 'toc-h3' : 'toc-h2'}><a href={`#${heading.slug}`}>{heading.text}</a></li>
+            ))}
+          </ol>
+        </nav>
       </details>
     )}
 
-    <div class="prose post-content">
+    <div class="content post-content">
       <Content />
     </div>
 
-    <nav class="post-nav" aria-label="다른 글">
-      {older ? <a href={postUrl(older)}><small>이전 글</small>{older.data.title}</a> : <span></span>}
-      {newer ? <a href={postUrl(newer)}><small>다음 글</small>{newer.data.title}</a> : <span></span>}
+    <nav class="post-nav" aria-label="게시글 이동">
+      {older ? (
+        <a class="post-nav-item" href={postUrl(older)}>
+          <span class="post-nav-label">이전 글</span>
+          <span class="post-nav-title">{older.data.title}</span>
+        </a>
+      ) : <span class="post-nav-item post-nav-empty"></span>}
+      {newer ? (
+        <a class="post-nav-item post-nav-next" href={postUrl(newer)}>
+          <span class="post-nav-label">다음 글</span>
+          <span class="post-nav-title">{newer.data.title}</span>
+        </a>
+      ) : <span class="post-nav-item post-nav-empty"></span>}
     </nav>
   </article>
 
-  <script is:inline>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        macros: {
-          odv: ['{\\frac{\\mathrm{d}#1}{\\mathrm{d}#2}}', 2], odif: ['{\\mathrm{d}#1}', 1],
-          pdv: ['{\\frac{\\partial#1}{\\partial#2}}', 2], mdv: ['{\\frac{\\mathrm{D}#1}{\\mathrm{D}#2}}', 2],
-          grad: '{\\nabla}', divg: '{\\nabla \\cdot}', curl: '{\\nabla \\times}', laplacian: '{\\nabla^2}',
-          oddv: ['{\\frac{\\mathrm{d}^2#1}{\\mathrm{d}#2^2}}', 2], pddv: ['{\\frac{\\partial^2#1}{\\partial#2^2}}', 2],
-          ehat: ['{\\hat{\\mathbf{e}}_{#1}}', 1], uhat: ['{\\hat{\\mathbf{u}}_{#1}}', 1]
-        }
-      },
-      svg: { fontCache: 'global' }
-    };
-  </script>
-  <script is:inline async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
   <script>
-    const liquidPath = /\{\{\s*['"]([^'"]+)['"]\s*\|\s*relative_url\s*\}\}/;
-    document.querySelectorAll<HTMLImageElement>('.post-content img').forEach((image) => {
-      const legacyPath = image.getAttribute('src')?.match(liquidPath)?.[1];
-      if (legacyPath) image.src = legacyPath;
-    });
-    document.querySelectorAll<HTMLAnchorElement>('.post-content a').forEach((link) => {
-      const legacyPath = link.getAttribute('href')?.match(liquidPath)?.[1];
-      if (legacyPath) link.href = legacyPath;
-    });
-    document.querySelectorAll<HTMLImageElement>('.post-content img').forEach((image) => {
-      image.loading ||= 'lazy';
-      image.decoding ||= 'async';
-    });
     document.querySelectorAll<HTMLTableElement>('.post-content table').forEach((table) => {
+      if (table.closest('.table-scroll')) return;
       const wrapper = document.createElement('div');
       wrapper.className = 'table-scroll';
+      wrapper.tabIndex = 0;
       table.before(wrapper);
       wrapper.append(table);
     });
+
+    const article = document.querySelector<HTMLElement>('.post');
+    const progress = document.querySelector<HTMLElement>('.reading-progress-bar');
+    const updateProgress = () => {
+      if (!article || !progress) return;
+      const distance = Math.max(article.offsetHeight - innerHeight, 1);
+      const value = Math.min(Math.max((scrollY - article.offsetTop) / distance, 0), 1);
+      progress.style.transform = `scaleX(${value})`;
+    };
+    addEventListener('scroll', updateProgress, { passive: true });
+    addEventListener('resize', updateProgress);
+    updateProgress();
+
+    const tocLinks = [...document.querySelectorAll<HTMLAnchorElement>('.post-toc a, .post-toc-mobile a')];
+    const tocHeadings = [...document.querySelectorAll<HTMLElement>('.post-content h2, .post-content h3')];
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+      if (!visible) return;
+      tocLinks.forEach((link) => link.toggleAttribute('aria-current', link.hash === `#${visible.target.id}`));
+    }, { rootMargin: '-15% 0px -75% 0px' });
+    tocHeadings.forEach((heading) => observer.observe(heading));
   </script>
 </BaseLayout>
