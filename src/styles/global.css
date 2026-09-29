@@ -305,6 +305,58 @@ main {
   text-align: center;
 }
 
+.anime-gate {
+  width: min(26rem, calc(100% - var(--space-6)));
+  margin: 18vh auto 0;
+}
+
+.anime-gate-form {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+
+.anime-gate-form h2,
+.anime-gate-form p {
+  margin: 0;
+}
+
+.anime-gate-form h2 {
+  font-size: 1.125rem;
+}
+
+.anime-gate-form label,
+.anime-gate-message {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.anime-gate-form input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.anime-gate-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.anime-gate-actions button {
+  padding: 0.32rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--text);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
 .footer {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr);
@@ -325,6 +377,8 @@ main {
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
+  font-size: inherit;
+  font-family: inherit;
   color: inherit;
   cursor: pointer;
   transition:
