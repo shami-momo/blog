@@ -92,7 +92,14 @@ const isActive = (path: string) => path === '/' ? currentPath === '/' : currentP
 
       <footer class="footer">
         <span>© {new Date().getFullYear()} {SITE.title}</span>
-        <a class="tadashikunai" href="/aburibinninaruyo/" aria-label="숨겨진 페이지 열기">🌸✋</a>
+        <button
+          class="tadashikunai"
+          id="animeGateOpen"
+          type="button"
+          aria-label="숨겨진 페이지 열기"
+        >
+          🌸✋
+        </button>
         <a class="site-copyright" href="https://github.com/shami-momo/blog">Source</a>
       </footer>
     </div>
@@ -104,6 +111,29 @@ const isActive = (path: string) => path === '/' ? currentPath === '/' : currentP
       </header>
       <ul class="site-search-results" id="siteSearchResults" hidden></ul>
       <p class="site-search-message" id="siteSearchMessage">Esc로 닫기</p>
+    </dialog>
+    <dialog
+      class="anime-gate modal-surface"
+      id="animeGate"
+      aria-labelledby="animeGateTitle"
+    >
+      <form class="anime-gate-form" id="animeGateForm">
+        <h2 id="animeGateTitle">🌸✋ 병을 구우면 【　　】가 돼!</h2>
+        <input
+          id="animeGateAnswer"
+          name="answer"
+          type="text"
+          autocomplete="off"
+          required
+        />
+        <p class="anime-gate-message" id="animeGateMessage" aria-live="polite">
+          정답을 입력해주세요
+        </p>
+        <div class="anime-gate-actions">
+          <button type="button" id="animeGateCancel">취소</button>
+          <button type="submit">확인</button>
+        </div>
+      </form>
     </dialog>
     <script type="application/json" id="searchData" set:html={searchData}></script>
 
@@ -164,6 +194,40 @@ const isActive = (path: string) => path === '/' ? currentPath === '/' : currentP
         }
       });
       dialog?.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+      
+      const animeGate = document.querySelector<HTMLDialogElement>('#animeGate');
+      const animeGateForm = document.querySelector<HTMLFormElement>('#animeGateForm');
+      const animeGateAnswer = document.querySelector<HTMLInputElement>('#animeGateAnswer');
+      const animeGateMessage = document.querySelector<HTMLElement>('#animeGateMessage');
+
+      document.querySelector('#animeGateOpen')?.addEventListener('click', () => {
+        animeGate?.showModal();
+        if (animeGateAnswer) animeGateAnswer.value = '';
+        if (animeGateMessage) {
+          animeGateMessage.textContent = '정답을 입력해주세요';
+        }
+        animeGateAnswer?.focus();
+      });
+
+      document.querySelector('#animeGateCancel')?.addEventListener('click', () => {
+        animeGate?.close();
+      });
+
+      animeGateForm?.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const answer = animeGateAnswer?.value
+          .trim()
+          .replaceAll(/\s+/g, '')
+          .toLocaleLowerCase('ko');
+
+        if (answer === '병구이') {
+          window.location.assign('/aburibinninaruyo/');
+        } else if (animeGateMessage) {
+          animeGateMessage.textContent = '정답이 아니에요. 다시 입력해 주세요.';
+          animeGateAnswer?.select();
+        }
+      });
 
       const header = document.querySelector<HTMLElement>('.topbar');
       let lastY = scrollY;
