@@ -21,7 +21,9 @@ const { post, older, newer } = Astro.props;
 const { Content, headings, remarkPluginFrontmatter } = await render(post);
 const description = post.data.description ?? `${post.data.title} — ${post.data.tags.join(', ')}`;
 const toc = headings.filter(({ depth }) => depth === 2 || depth === 3);
-const readingMinutes = remarkPluginFrontmatter.minutesRead;
+const text = post.body ?? '';
+const chars = text.replace(/\s/g, '').length;
+const minutesRead = Math.max(1, Math.ceil(chars / 500));
 ---
 
 <BaseLayout title={post.data.title} description={description} image={post.data.image} type="article">
@@ -33,7 +35,7 @@ const readingMinutes = remarkPluginFrontmatter.minutesRead;
     <header class="post-header">
       {post.data.tags.length > 0 && <p class="tag-list">{post.data.tags.map((tag) => <span class="tag">{tag}</span>)}</p>}
       <h1>{post.data.title}</h1>
-      <p class="meta"><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time> · 약 {readingMinutes}분</p>
+      <p class="meta"><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time> · 약 {minutesRead}분</p>
     </header>
 
     {toc.length > 0 && (
