@@ -3,6 +3,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from 'astro:assets';
 import { photoAssets, photos } from '../data/photos';
 import '../styles/photos.css';
+
+// CSS 다단 레이아웃에서 각 열의 상단에 놓이는 사진(모바일 2열 포함).
+const eagerIndices = new Set([0, 1, 2, 6, 7, 8, 12, 13, 14]);
 ---
 
 <BaseLayout title="사진" description="여행하며 찍은 사진들">
@@ -17,9 +20,9 @@ import '../styles/photos.css';
         return (
           <li class="photo-item">
             <button class="photo-trigger" type="button" data-photo data-full={assets.full.src} data-caption={caption} aria-label={`사진 크게 보기: ${alt}`}>
-              <Image src={assets.thumbnail} alt={alt} width={720} height={720} layout="constrained" priority={index < 3} />
+              <Image src={assets.thumbnail} alt={alt} width={assets.thumbnail.width} height={assets.thumbnail.height} layout="constrained" priority={index === 0} loading={eagerIndices.has(index) ? 'eager' : 'lazy'} />
+              <span class="photo-description">{caption}</span>
             </button>
-            <span class="photo-description">{caption}</span>
           </li>
         );
       })}

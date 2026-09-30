@@ -18,7 +18,7 @@ export async function getStaticPaths() {
 }
 
 const { post, older, newer } = Astro.props;
-const { Content, headings, remarkPluginFrontmatter } = await render(post);
+const { Content, headings } = await render(post);
 const description = post.data.description ?? `${post.data.title} — ${post.data.tags.join(', ')}`;
 const toc = headings.filter(({ depth }) => depth === 2 || depth === 3);
 const text = post.body ?? '';
