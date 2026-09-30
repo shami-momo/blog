@@ -1,7 +1,8 @@
 import { defineCollection } from 'astro:content';
 import { createRequire } from 'node:module';
 import { z } from 'astro/zod';
-import { glob } from 'astro/loaders'
+
+const { glob } = createRequire(import.meta.url)('astro/loaders');
 
 const posts = defineCollection({
   loader: glob({

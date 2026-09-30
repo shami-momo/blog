@@ -4,7 +4,6 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
-import { remarkReadingTime } from './src/lib/remark-reading-time.mjs';
 
 export default defineConfig({
   site: process.env.SITE ?? 'https://shami-momo.github.io',
@@ -17,7 +16,7 @@ export default defineConfig({
       },
     },
     processor: unified({
-      remarkPlugins: [remarkMath, remarkReadingTime],
+      remarkPlugins: [remarkMath],
       rehypePlugins: [[rehypeKatex, {
         strict: false,
         throwOnError: false,
