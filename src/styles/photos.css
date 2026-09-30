@@ -31,8 +31,8 @@
 
 .photo-trigger::after {
   position: absolute;
-  inset: 45% 0 0;
-  background: linear-gradient(transparent, rgb(0 0 0 / 68%));
+  inset: 70% 0 0;
+  background: linear-gradient(transparent, rgb(0 0 0 / 30%));
   content: '';
   pointer-events: none;
 }
@@ -62,7 +62,7 @@
   font-style: italic;
   letter-spacing: -0.025rem;
   line-height: 1.4;
-  text-shadow: 0 1px 3px rgb(0 0 0 / 55%);
+  text-shadow: 0 1px 4px rgb(0 0 0 / 55%);
 }
 
 .photo-lightbox {
