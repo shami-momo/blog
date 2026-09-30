@@ -60,9 +60,13 @@
   opacity: 0.76;
 }
 
-.world-map .is-clickable:focus-visible,
-.japan-map .is-clickable:focus-visible {
+.world-map a:focus-visible,
+.japan-map a:focus-visible {
   outline: none;
+}
+
+.world-map a:focus-visible .is-clickable,
+.japan-map a:focus-visible .is-clickable {
   stroke: var(--text);
   stroke-width: 2px;
 }
@@ -136,10 +140,18 @@
   line-height: 1.2;
 }
 
-.travel-year-list {
+.content .travel-year-list {
   display: grid;
   gap: var(--space-1);
   min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.content .travel-year-list > li {
+  min-width: 0;
+  margin: 0;
 }
 
 .travel-card {
