@@ -1,12 +1,11 @@
 ---
-import { render, type CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { formatDate, getPosts, postUrl } from '../../lib/posts';
+import { formatDate, getPosts, postUrl, type Post } from '../../lib/posts';
 import 'katex/dist/katex.min.css';
 import '../../styles/content.css';
 import '../../styles/post.css';
 
-type Post = CollectionEntry<'posts'>;
 interface Props { post: Post; older?: Post; newer?: Post }
 
 export async function getStaticPaths() {

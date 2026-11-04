@@ -79,10 +79,6 @@
   margin-bottom: var(--space-4);
 }
 
-.section-header h2 {
-  margin: 0;
-}
-
 .section-more {
   flex: 0 0 auto;
   color: var(--muted);

@@ -6,7 +6,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 
 export default defineConfig({
-  site: process.env.SITE ?? 'https://shami-momo.github.io',
+  site: process.env.SITE ?? 'https://hojun-yoo.vercel.app',
   integrations: [mdx(), sitemap()],
   markdown: {
     shikiConfig: {

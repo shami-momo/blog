@@ -120,7 +120,6 @@
   height: auto;
   max-height: calc(100dvh - 7rem);
   object-fit: contain;
-  margin-bottom: 0;
 }
 
 .photo-lightbox-figure .photo-lightbox-caption {
@@ -194,7 +193,7 @@
     max-width: 100%;
   }
 
-  .photo-lightbox-image {
+  .photo-lightbox-figure .photo-lightbox-image {
     max-height: calc(100dvh - 8rem);
   }
 

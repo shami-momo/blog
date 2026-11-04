@@ -14,10 +14,6 @@
   margin: 0;
 }
 
-.content .resume-item + .resume-item {
-  margin-top: 0;
-}
-
 .resume-date {
   padding-top: 0.3rem;
   color: var(--muted);
@@ -38,10 +34,6 @@
 .content .resume-body p {
   margin: 0;
   color: var(--text-soft);
-}
-
-.content .resume-body ul {
-  margin: var(--space-3) 0 0;
 }
 
 @media (max-width: 640px) {

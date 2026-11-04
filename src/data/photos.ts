@@ -26,12 +26,10 @@ export const photos = [
   ['nagasaki.webp',       'Nagasaki, Japan',           '산과 호수의 흑백 풍경'], //세로
 ] as const;
 
-const thumbnails = import.meta.glob<{ default: ImageMetadata }>('../assets/images/photos/thumbs/*.webp', { eager: true });
-const fullImages = import.meta.glob<{ default: ImageMetadata }>('../assets/images/photos/full/*.webp', { eager: true });
+const photoImages = import.meta.glob<{ default: ImageMetadata }>('../assets/images/photos/*.webp', { eager: true });
 
-export function photoAssets(file: string) {
-  const thumbnail = thumbnails[`../assets/images/photos/thumbs/${file}`]?.default;
-  const full = fullImages[`../assets/images/photos/full/${file}`]?.default;
-  if (!thumbnail || !full) throw new Error(`사진 파일을 찾을 수 없습니다: ${file}`);
-  return { thumbnail, full };
+export function photoAsset(file: string) {
+  const photo = photoImages[`../assets/images/photos/${file}`]?.default;
+  if (!photo) throw new Error(`사진 파일을 찾을 수 없습니다: ${file}`);
+  return photo;
 }

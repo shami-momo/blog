@@ -96,7 +96,7 @@ const isActive = (path: string) => path === '/' ? currentPath === '/' : currentP
           class="tadashikunai"
           id="animeGateOpen"
           type="button"
-          aria-label="숨겨진 페이지 열기"
+          aria-label="이스터에그"
         >
           🌸✋
         </button>
@@ -106,11 +106,17 @@ const isActive = (path: string) => path === '/' ? currentPath === '/' : currentP
 
     <dialog class="site-search modal-surface" id="siteSearch" aria-label="글 검색">
       <header class="site-search-header">
+        <svg class="site-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
         <label class="visually-hidden" for="siteSearchInput">글 검색</label>
-        <input class="site-search-input" id="siteSearchInput" type="search" placeholder="글 제목이나 태그 검색" autocomplete="off" spellcheck="false" />
+        <input class="site-search-input" id="siteSearchInput" type="search" placeholder="제목이나 태그로 글 찾기" autocomplete="off" spellcheck="false" />
       </header>
-      <ul class="site-search-results" id="siteSearchResults" hidden></ul>
-      <p class="site-search-message" id="siteSearchMessage">Esc로 닫기</p>
+      <p class="site-search-label" id="siteSearchLabel">최근 글</p>
+      <ul class="site-search-results" id="siteSearchResults" aria-labelledby="siteSearchLabel" hidden></ul>
+      <p class="site-search-message" id="siteSearchMessage" role="status" hidden></p>
+      <footer class="site-search-footer">
+        <a href="/posts/">전체 글 보기</a>
+        <button class="site-search-close" id="siteSearchClose" type="button" aria-label="검색창 닫기">닫기 <kbd aria-hidden="true">Esc</kbd></button>
+      </footer>
     </dialog>
     <dialog
       class="anime-gate modal-surface"
@@ -158,13 +164,14 @@ const isActive = (path: string) => path === '/' ? currentPath === '/' : currentP
       const dialog = document.querySelector<HTMLDialogElement>('#siteSearch');
       const input = document.querySelector<HTMLInputElement>('#siteSearchInput');
       const results = document.querySelector<HTMLUListElement>('#siteSearchResults');
+      const searchLabel = document.querySelector<HTMLParagraphElement>('#siteSearchLabel');
       const message = document.querySelector<HTMLParagraphElement>('#siteSearchMessage');
       const data = JSON.parse(document.querySelector('#searchData')?.textContent ?? '[]') as { title: string; tags: string[]; url: string }[];
 
       function openSearch() {
         if (!dialog?.open) dialog?.showModal();
         if (input) input.value = '';
-        input?.dispatchEvent(new Event('input'));
+        updateSearch();
         input?.focus();
       }
 
@@ -175,24 +182,42 @@ const isActive = (path: string) => path === '/' ? currentPath === '/' : currentP
           openSearch();
         }
       });
-      input?.addEventListener('input', () => {
-        const query = input.value.trim().toLocaleLowerCase('ko');
-        const matched = query ? data.filter((item) => `${item.title} ${item.tags.join(' ')}`.toLocaleLowerCase('ko').includes(query)).slice(0, 10) : [];
+      function updateSearch() {
+        const query = input?.value.trim().toLocaleLowerCase('ko') ?? '';
+        const matched = query
+          ? data.filter((item) => `${item.title} ${item.tags.join(' ')}`.toLocaleLowerCase('ko').includes(query)).slice(0, 10)
+          : data.slice(0, 5);
         results?.replaceChildren(...matched.map((item) => {
           const li = document.createElement('li');
           const link = document.createElement('a');
           link.className = 'site-search-result';
           link.href = item.url;
-          link.textContent = item.title;
+          const title = document.createElement('span');
+          title.textContent = item.title;
+          link.append(title);
+          if (item.tags.length) {
+            const tags = document.createElement('span');
+            tags.className = 'site-search-result-tags';
+            tags.textContent = item.tags.join(' · ');
+            link.append(tags);
+          }
           li.append(link);
           return li;
         }));
         if (results) results.hidden = matched.length === 0;
+        if (searchLabel) {
+          searchLabel.textContent = query ? '검색 결과' : '최근 글';
+          searchLabel.hidden = matched.length === 0;
+        }
         if (message) {
           message.hidden = matched.length > 0;
-          message.textContent = query ? '검색 결과가 없습니다.' : 'Esc로 닫기';
+          message.textContent = query
+            ? '검색 결과가 없습니다.'
+            : '검색할 글이 없습니다.';
         }
-      });
+      }
+      input?.addEventListener('input', updateSearch);
+      document.querySelector('#siteSearchClose')?.addEventListener('click', () => dialog?.close());
       dialog?.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
       
       const animeGate = document.querySelector<HTMLDialogElement>('#animeGate');
@@ -224,7 +249,7 @@ const isActive = (path: string) => path === '/' ? currentPath === '/' : currentP
         if (answer === '병구이') {
           window.location.assign('/aburibinninaruyo/');
         } else if (animeGateMessage) {
-          animeGateMessage.textContent = '정답이 아니에요. 다시 입력해 주세요.';
+          animeGateMessage.textContent = '오답입니다. 다시 입력해 주세요';
           animeGateAnswer?.select();
         }
       });

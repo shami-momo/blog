@@ -1,12 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import StackedBarChart from '../components/StackedBarChart.astro';
-import animeData from '../data/anime.json';
+import anime from '../data/anime.json';
 import '../styles/content.css';
 import '../styles/anime.css';
 
-interface Anime { year: number | string; season: number; title: string; rating: number; yuri: boolean }
-const anime = animeData as Anime[];
 const grouped = Map.groupBy(anime, (item) => String(item.year));
 const seasonLabel = (season: number) => season === 0 ? '극장판' : `${season}분기`;
 const yearId = (year: string) => `anime-year-${year.replaceAll(' ', '-')}`;

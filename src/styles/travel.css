@@ -167,12 +167,6 @@
   text-decoration: none;
 }
 
-.content a.travel-card,
-.content a.travel-card:hover {
-  background-image: none;
-  text-decoration: none;
-}
-
 a.travel-card {
   transition:
     background-color var(--motion-fast) var(--ease),
