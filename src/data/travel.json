@@ -494,5 +494,49 @@
     "prefectures_walked": [
       "야마나시"
     ]
+  },
+  {
+    "url": "https://sei-and-the-world.tistory.com/category/여행/2609 아오키 히나 라이브",
+    "emoji": "🎵",
+    "title": "아오키 히나 Zepp 라이브",
+    "start": "2026-09-25",
+    "end": "2026-09-28",
+    "description": "두 번째 히나삐요 라이브는 Zepp",
+    "countries": [
+      "JP"
+    ],
+    "prefectures": [
+      "도쿄",
+      "카나가와"
+    ],
+    "prefectures_walked": [
+      "아이치"
+    ]
+  },
+  {
+    "url": "https://sei-and-the-world.tistory.com/category/여행/2612 C109",
+    "emoji": "🎵",
+    "title": "C109",
+    "start": "2026-12-27",
+    "end": "2026-12-31",
+    "description": "첫 3일짜리 코미케",
+    "countries": [
+      "JP"
+    ],
+    "prefectures": [
+      "도쿄",
+      "카나가와"
+    ]
+  },
+  {
+    "url": "https://sei-and-the-world.tistory.com/category/여행/2702 대만",
+    "emoji": "🎵",
+    "title": "대만",
+    "start": "2027-02-18",
+    "end": "2027-02-22",
+    "description": "첫 대만 여행! 타이베이와 FF48, 그리고 폭포들",
+    "countries": [
+      "TW"
+    ]
   }
 ]
